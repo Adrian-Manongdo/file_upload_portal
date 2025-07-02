@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Files</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background-color: #f8f9fa; }
+    .container { margin-top: 40px; }
+    .file-item {
+      padding: 10px;
+      background-color: white;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+    .pagination-btns button { margin-right: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 class="mb-4">Welcome, {{ username }}</h2>
+
+  <!-- Upload Form -->
+  <form method="post" enctype="multipart/form-data" class="mb-4">
+    <div class="input-group">
+      <input type="file" name="files" multiple class="form-control" />
+      <button class="btn btn-primary" type="submit">Upload</button>
+    </div>
+  </form>
+
+  <!-- Filter Section -->
+  <div class="row mb-3 align-items-end">
+    <div class="col-md-3">
+      <label for="search" class="form-label">🔍 Search</label>
+      <input id="search" class="form-control" placeholder="Search by filename" />
+    </div>
+    <div class="col-md-3">
+      <label for="typeFilter" class="form-label">📂 File Type</label>
+      <select id="typeFilter" class="form-select">
+        <option value="">All Types</option>
+        <option value=".csv">.csv</option>
+        <option value=".xlsx">.xlsx</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="dateFrom" class="form-label">📅 Date From</label>
+      <input id="dateFrom" type="date" class="form-control" />
+    </div>
+    <div class="col-md-3">
+      <label for="dateTo" class="form-label">📅 Date To</label>
+      <input id="dateTo" type="date" class="form-control" />
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <button class="btn btn-secondary" onclick="clearFilters()" type="button">🧹 Clear All Filters</button>
+  </div>
+
+  <!-- Action Buttons (Delete/Download/All) -->
+  <div class="mb-3 d-flex flex-wrap gap-2">
+    <form method="post" action="{{ url_for('delete_multiple', user=username) }}" id="deleteForm">
+      <button class="btn btn-danger" type="submit">🗑️ Delete Selected</button>
+    </form>
+
+    <form method="post" action="{{ url_for('download_multiple', user=username) }}" id="downloadForm">
+      <button class="btn btn-success" type="submit">📥 Download Selected</button>
+    </form>
+
+    <form method="post" action="{{ url_for('delete_all', user=username) }}" onsubmit="return confirmDeleteAll()">
+      <button class="btn btn-outline-danger" type="submit">🗑️ Delete All Files</button>
+    </form>
+  </div>
+
+  <!-- File List -->
+  <ul id="fileList" class="list-unstyled">
+    {% for f in files %}
+    <li class="file-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <input type="checkbox" class="file-checkbox" data-name="{{ f.name }}" />
+          <strong class="filename">{{ f.name }}</strong>
+          <small class="text-muted file-date">({{ f.size }}) – {{ f.date }}</small>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Pagination -->
+  <div id="pagination" class="pagination-btns mt-4"></div>
+
+  <!-- Links -->
+  <div class="mt-4">
+    <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Logout</a>
+    {% if session['user']['role'] == 'admin' %}
+    <a href="{{ url_for('admin') }}" class="btn btn-outline-primary">Admin Dashboard</a>
+    <a href="{{ url_for('create_user_page') }}" class="btn btn-outline-primary">Create User</a>
+    <a href="{{ url_for('edit_users') }}" class="btn btn-outline-primary">Edit Users</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function filterAndPaginate() {
+  const searchValue = document.getElementById('search').value.toLowerCase();
+  const fileType = document.getElementById('typeFilter').value;
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+
+  const allItems = [...document.querySelectorAll('#fileList .file-item')];
+
+  const filteredItems = allItems.filter(item => {
+    const name = item.querySelector('.filename').textContent.toLowerCase();
+    const dateText = item.querySelector('.file-date').textContent;
+    const fileDateStr = dateText.split('–')[1]?.trim().substring(0, 10);
+    const fileDate = new Date(fileDateStr);
+    const fromDate = dateFrom ? new Date(dateFrom) : null;
+    const toDate = dateTo ? new Date(dateTo) : null;
+
+    return name.includes(searchValue) &&
+           (fileType === '' || name.endsWith(fileType)) &&
+           (!fromDate || fileDate >= fromDate) &&
+           (!toDate || fileDate <= toDate);
+  });
+
+  allItems.forEach(item => item.style.display = 'none');
+
+  const perPage = 10;
+  const totalPages = Math.ceil(filteredItems.length / perPage);
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+
+  function showPage(pageNum) {
+    filteredItems.forEach((item, index) => {
+      item.style.display = (index >= pageNum * perPage && index < (pageNum + 1) * perPage) ? 'block' : 'none';
+    });
+  }
+
+  if (filteredItems.length > 0) {
+    showPage(0);
+    for (let i = 0; i < totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = i + 1;
+      btn.className = 'btn btn-sm btn-outline-primary me-1';
+      btn.onclick = () => showPage(i);
+      pagination.appendChild(btn);
+    }
+  }
+}
+
+function clearFilters() {
+  document.getElementById('search').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  filterAndPaginate();
+}
+
+function confirmDeleteAll() {
+  const input = prompt('⚠️ WARNING: This will delete ALL your uploaded files.\n\nType CONFIRM to proceed:');
+  return input && input.trim().toUpperCase() === 'CONFIRM';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  filterAndPaginate();
+
+  document.getElementById('search').addEventListener('input', filterAndPaginate);
+  document.getElementById('typeFilter').addEventListener('change', filterAndPaginate);
+  document.getElementById('dateFrom').addEventListener('change', filterAndPaginate);
+  document.getElementById('dateTo').addEventListener('change', filterAndPaginate);
+
+  const checkboxes = document.querySelectorAll('.file-checkbox');
+  const deleteForm = document.getElementById('deleteForm');
+  const downloadForm = document.getElementById('downloadForm');
+
+  function syncCheckedFiles() {
+    deleteForm.querySelectorAll('input[name="files_to_delete"]').forEach(e => e.remove());
+    downloadForm.querySelectorAll('input[name="files_to_download"]').forEach(e => e.remove());
+
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        const filename = cb.getAttribute('data-name');
+
+        const delInput = document.createElement('input');
+        delInput.type = 'hidden';
+        delInput.name = 'files_to_delete';
+        delInput.value = filename;
+        deleteForm.appendChild(delInput);
+
+        const dlInput = document.createElement('input');
+        dlInput.type = 'hidden';
+        dlInput.name = 'files_to_download';
+        dlInput.value = filename;
+        downloadForm.appendChild(dlInput);
+      }
+    });
+  }
+
+  checkboxes.forEach(cb => cb.addEventListener('change', syncCheckedFiles));
+});
+</script>
+</body>
+</html>
