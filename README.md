@@ -70,29 +70,6 @@ When you first run the app, it auto-generates an admin user:
     Change this as soon as possible in production use.
 
 
-
-📦 Deploying to Render.com
-
-    Push your GitHub repo to Render.
-
-    Choose Web Service → Select your repo.
-
-    Set the following:
-
-        Environment: Python 3
-
-        Build Command: pip install -r requirements.txt
-
-        Start Command: python app.py
-
-    Add a secret key as environment variable:
-
-        FLASK_ENV=production
-
-    Click Deploy and wait for it to finish.
-
-
-
 📸 Admin Dashboard Preview
 
     Features like:
