@@ -12,7 +12,7 @@ A simple Flask-based web application for user-based file uploads, admin control,
 - 📦 Download multiple files as ZIP
 - 🧹 Filter files by name, type, and date
 
-<pre> file_upload_portal/ ├── app.py # Main Flask app ├── auth.py # Auth logic (login, roles, CRUD users) ├── database.py # DB initialization ├── users.db # SQLite DB (auto-generated) ├── requirements.txt # Python dependencies ├── README.md # Project documentation ├── uploads/ # Folder for user-uploaded files ├── templates/ # HTML templates (Jinja2) │ ├── login.html │ ├── upload.html │ ├── admin.html │ ├── create_user.html │ └── edit_user.html └── venv/ # (Optional) Virtual environment </pre>
+file_upload_portal/ │ ├── app.py # Main Flask app ├── auth.py # Auth logic (login, roles, CRUD users) ├── database.py # DB initialization ├── users.db # SQLite DB (auto-generated) │ ├── templates/ # HTML templates (Jinja2) │ ├── login.html │ ├── upload.html │ ├── admin.html │ ├── create_user.html │ └── edit_user.html │ ├── uploads/ # Uploaded user files ├── venv/ # (Optional) Python virtual environment ├── requirements.txt # Python dependencies └── README.md # You are here!
 
 ## ⚙️ Setup Instructions
 
