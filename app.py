@@ -230,5 +230,6 @@ def edit_users():
 
     return render_template('edit_users.html', users=users, message=msg, error=err)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # fallback to 5000 for local
+    app.run(host="0.0.0.0", port=port, debug=True)
