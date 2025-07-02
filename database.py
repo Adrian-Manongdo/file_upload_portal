@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 import sqlite3
 
 def init_db():
@@ -15,8 +16,9 @@ def init_db():
 
     # Insert admin user (username: admin, password: admin123)
     try:
+        hashed_pw = generate_password_hash('admin123')
         cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                       ('admin', 'admin', 'admin'))
+                       ('admin', hashed_pw, 'admin'))
     except sqlite3.IntegrityError:
         pass  # Already added
 
