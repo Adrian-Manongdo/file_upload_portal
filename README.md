@@ -65,7 +65,7 @@ When you first run the app, it auto-generates an admin user:
 
     Username: admin
 
-    Password: admin
+    Password: admin123
 
     Change this as soon as possible in production use.
 
