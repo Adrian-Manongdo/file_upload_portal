@@ -84,9 +84,6 @@ When you first run the app, it auto-generates an admin user:
 
     Role management
 
-admin dashboard preview
-
-
 
 🧰 Tech Stack
 
